@@ -1,5 +1,12 @@
 # -*- coding: UTF-8 -*-
 import argparse
+import socket
+import select
+
+# constants
+MAX_PORT = 65535
+SOCK_TIMEOUT = 1
+VERBOSE = False
 
 # given a string of range or single number, return a list of sufix(es)
 def preprocess_range(r):
@@ -42,13 +49,16 @@ def preprocess_ip(ip):
     return ips
 
 # params parsing method, including strings preprocessing
-def params(ports=None):
+def params(ports=range(1,MAX_PORT+1)):
     parser = argparse.ArgumentParser()
     # argument ip
     parser.add_argument('ip', help='Server IP or IP ranges separated by "-"')
     # optional argument port
     parser.add_argument('port', nargs='?', help='Port or port ranges separated by "-"')
+    # optional argument port
+    parser.add_argument('--verbose', help='Enable verbose scanning', action='store_true')
     params = parser.parse_args()
+    VERBOSE = params.verbose
     # preprocess ip string
     ips = preprocess_ip(params.ip)
     # check if port exists
@@ -57,12 +67,68 @@ def params(ports=None):
         ports = preprocess_range(params.port)
     return ips, ports
 
+# check if verbose is enabled and print the string
+def print_verb(str):
+    if VERBOSE:
+        print str
+
+# connect to an ip and port and return its socket
+def connect(ip,port):
+    # print port info
+    print_verb("Connecting to ip " + ip + " on port " + str(port) + ".")
+    try:
+        # set default timeout
+        socket.setdefaulttimeout(SOCK_TIMEOUT)
+        # create socket
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # connect to ip on port
+        s.connect((ip,port))
+        # if not exeption, port is open
+        print "Port", str(port), "is open."
+        # get service name
+        service = socket.getservbyport(port)
+        # print service name
+        print "Service:", service
+        # return socket
+        return s
+    except:
+        # port closed
+        print_verb("Port " + str(port) + "is closed.")
+        # close socket
+        s.close()
+        # return None
+        return None
+
+# print banner given a socket
+def banner(s):
+    try:
+        # send a message
+        s.send('I want your banner\r\n')
+        # receive banner
+        ban = s.recv(4096)
+        # print baner
+        print str(ban)
+    except:
+        # exeption: banner error
+        print "Unable to get any banner."
+    # close socket
+    s.close()
+
 # main program
 def main():
     # get parameters
     ips, ports = params()
-    print ips, ' ', ports
-
+    # iterate over ips
+    for ip in ips:
+        print "Scanning ip", ip + "..."
+        # iterate over ports
+        for port in ports:
+            # connect to ip on port
+            s = connect(ip,port)
+            # check if socket is valid
+            if s:
+                # print banner
+                banner(s)
 
 if __name__ == "__main__":
     main()
