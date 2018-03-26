@@ -10,7 +10,7 @@ PARALLEL = True
 VERBOSE = False
 MAX_PORT = 65535
 SOCK_TIMEOUT = 1
-THREADS = 4
+THREADS = multiprocessing.cpu_count()
 
 # given a string of range or single number, return a list of sufix(es)
 def preprocess_range(r):
@@ -124,12 +124,17 @@ def scan_ips(ips, ports):
     # iterate over ips
     for ip in ips:
         print "Scanning ip", ip + "..."
+        # check if parallel is enabled
         if PARALLEL:
+            # do parallel processing
             scan_parallel(ip, ports)
         else:
+            # do conventional scan
             scan_ports(ip,ports)
 
+# conventional ports scan
 def scan_ports(ip, ports):
+    # iterate over ports
     for port in ports:
         # connect to ip on port
         s = connect(ip,port)
@@ -138,6 +143,7 @@ def scan_ports(ip, ports):
             # print banner
             banner(s)
 
+# parallel ports scan
 def scan_parallel(ip,ports):
     # iterate over ports
     pool = multiprocessing.Pool(THREADS)
@@ -159,7 +165,7 @@ def scan(params):
 def main():
     # get parameters
     ips, ports = params()
-    # scanParallel(ip,ports)
+    # scan by ips
     scan_ips(ips,ports)
 
 if __name__ == "__main__":
