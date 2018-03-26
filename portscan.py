@@ -1,7 +1,6 @@
 # -*- coding: UTF-8 -*-
 import argparse
 import socket
-import select
 import multiprocessing
 import itertools
 
