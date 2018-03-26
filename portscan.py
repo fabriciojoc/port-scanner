@@ -2,11 +2,15 @@
 import argparse
 import socket
 import select
+import multiprocessing
+import itertools
 
 # constants
+PARALLEL = True
+VERBOSE = False
 MAX_PORT = 65535
 SOCK_TIMEOUT = 1
-VERBOSE = False
+THREADS = 4
 
 # given a string of range or single number, return a list of sufix(es)
 def preprocess_range(r):
@@ -58,6 +62,8 @@ def params(ports=range(1,MAX_PORT+1)):
     # optional argument port
     parser.add_argument('--verbose', help='Enable verbose scanning', action='store_true')
     params = parser.parse_args()
+    # set verbose var
+    global VERBOSE
     VERBOSE = params.verbose
     # preprocess ip string
     ips = preprocess_ip(params.ip)
@@ -93,7 +99,7 @@ def connect(ip,port):
         return s
     except:
         # port closed
-        print_verb("Port " + str(port) + "is closed.")
+        print_verb("Port " + str(port) + " is closed.")
         # close socket
         s.close()
         # return None
@@ -114,21 +120,47 @@ def banner(s):
     # close socket
     s.close()
 
+def scan_ips(ips, ports):
+    # iterate over ips
+    for ip in ips:
+        print "Scanning ip", ip + "..."
+        if PARALLEL:
+            scan_parallel(ip, ports)
+        else:
+            scan_ports(ip,ports)
+
+def scan_ports(ip, ports):
+    for port in ports:
+        # connect to ip on port
+        s = connect(ip,port)
+        # check if socket is valid
+        if s:
+            # print banner
+            banner(s)
+
+def scan_parallel(ip,ports):
+    # iterate over ports
+    pool = multiprocessing.Pool(THREADS)
+    # create all possible combinations of (ip, port)
+    pool.map(scan, itertools.product([ip], ports))
+    pool.close()
+    pool.join()
+
+def scan(params):
+    ip, port = params
+    # connect to ip on port
+    s = connect(ip,port)
+    # check if socket is valid
+    if s:
+        # print banner
+        banner(s)
+
 # main program
 def main():
     # get parameters
     ips, ports = params()
-    # iterate over ips
-    for ip in ips:
-        print "Scanning ip", ip + "..."
-        # iterate over ports
-        for port in ports:
-            # connect to ip on port
-            s = connect(ip,port)
-            # check if socket is valid
-            if s:
-                # print banner
-                banner(s)
+    # scanParallel(ip,ports)
+    scan_ips(ips,ports)
 
 if __name__ == "__main__":
     main()
