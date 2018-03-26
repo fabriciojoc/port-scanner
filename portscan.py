@@ -89,6 +89,7 @@ def connect(ip,port):
         # connect to ip on port
         s.connect((ip,port))
         # if not exeption, port is open
+        print "+"*30
         print "Port", str(port), "is open."
         # get service name
         service = socket.getservbyport(port)
@@ -119,17 +120,15 @@ def banner(s):
     # close socket
     s.close()
 
-def scan_ips(ips, ports):
-    # iterate over ips
-    for ip in ips:
-        print "Scanning ip", ip + "..."
-        # check if parallel is enabled
-        if PARALLEL:
-            # do parallel processing
-            scan_parallel(ip, ports)
-        else:
-            # do conventional scan
-            scan_ports(ip,ports)
+# scan ip and port
+def scan(params):
+    ip, port = params
+    # connect to ip on port
+    s = connect(ip,port)
+    # check if socket is valid
+    if s:
+        # print banner
+        banner(s)
 
 # conventional ports scan
 def scan_ports(ip, ports):
@@ -151,14 +150,19 @@ def scan_parallel(ip,ports):
     pool.close()
     pool.join()
 
-def scan(params):
-    ip, port = params
-    # connect to ip on port
-    s = connect(ip,port)
-    # check if socket is valid
-    if s:
-        # print banner
-        banner(s)
+# scan by ips
+def scan_ips(ips, ports):
+    # iterate over ips
+    for ip in ips:
+        print "-"*60
+        print "Scanning ip", ip + "..."
+        # check if parallel is enabled
+        if PARALLEL:
+            # do parallel processing
+            scan_parallel(ip, ports)
+        else:
+            # do conventional scan
+            scan_ports(ip,ports)
 
 # main program
 def main():
