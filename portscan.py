@@ -3,6 +3,7 @@ import argparse
 import socket
 import multiprocessing
 import itertools
+import time
 
 # constants
 PARALLEL = True
@@ -153,9 +154,11 @@ def scan_parallel(ip,ports):
 # scan by ips
 def scan_ips(ips, ports):
     # iterate over ips
+    total_start_time = time.time()
     for ip in ips:
         print "-"*60
         print "Scanning ip", ip + "..."
+        start_time = time.time()
         # check if parallel is enabled
         if PARALLEL:
             # do parallel processing
@@ -163,6 +166,10 @@ def scan_ips(ips, ports):
         else:
             # do conventional scan
             scan_ports(ip,ports)
+        current_time = time.time() - start_time
+        print "Elapsed time for "+ ip + ": %.2fs" % (current_time) 
+    total_time = time.time() - total_start_time
+    print "Total elapsed time: %.2fs" % total_time
 
 # main program
 def main():
