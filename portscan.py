@@ -4,6 +4,8 @@ import socket
 import multiprocessing
 import itertools
 import time
+import sys
+
 
 # constants
 PARALLEL = True
@@ -78,6 +80,9 @@ def print_verb(str):
     if VERBOSE:
         print str
 
+def print_string(str):
+    sys.stdout.write(str)
+
 # connect to an ip and port and return its socket
 def connect(ip,port):
     # print port info
@@ -90,12 +95,12 @@ def connect(ip,port):
         # connect to ip on port
         s.connect((ip,port))
         # if not exeption, port is open
-        print "+"*30
-        print "Port", str(port), "is open."
+        # print "+"*30
+        print_string(str(port) + " \t")
         # get service name
         service = socket.getservbyport(port)
         # print service name
-        print "Service:", service
+        print_string(service + " \t")
         # return socket
         return s
     except:
@@ -114,10 +119,12 @@ def banner(s):
         # receive banner
         ban = s.recv(4096)
         # print baner
-        print str(ban)
+        print_string("\n---Banner: ")
+        print_string(str(ban).rstrip()+"\n")
     except:
         # exeption: banner error
-        print "Unable to get any banner."
+        print
+        # print_string("Unable to get any banner.\n")
     # close socket
     s.close()
 
@@ -158,6 +165,7 @@ def scan_ips(ips, ports):
     for ip in ips:
         print "-"*60
         print "Scanning ip", ip + "..."
+        print_string("Port\tService\n")
         start_time = time.time()
         # check if parallel is enabled
         if PARALLEL:
