@@ -95,13 +95,11 @@ def connect(ip,port):
         # connect to ip on port
         s.connect((ip,port))
         # if not exeption, port is open
-        # print "+"*30
         print_string(str(port) + " \t")
         # get service name
         service = socket.getservbyport(port)
         # print service name
         print_string(service + " \t")
-        # return socket
         return s
     except:
         # port closed
@@ -124,7 +122,6 @@ def banner(s):
     except:
         # exeption: banner error
         print
-        # print_string("Unable to get any banner.\n")
     # close socket
     s.close()
 
